@@ -11,6 +11,13 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+preferences {
+    input("token", "text", title: "Access Token")
+    input("deviceId", "text", title: "Device ID")
+//    input("relaynum", "text", title: "Relay Number 1-6")
+    input("deviceName", "text", title: "Name of device in the Photon cloud")
+	// device name in api like:  https://api.spark.io/v1/devices/${deviceId}/${deviceName}
+}
 metadata {
 	definition (name: "DS18B20 Temperature Sensor", namespace: "smartthings", author: "github@josephsteele.com") {
 		capability "Temperature Measurement"
@@ -75,4 +82,11 @@ private String parseValue(String description) {
 		}
 	}
 	null
+}
+private put(relaystate) {
+    //Spark Core API Call
+	httpPost(
+		uri: "https://api.spark.io/v1/devices/${deviceId}/strelay${relaynum}",
+        body: [access_token: token, command: relaystate],  
+	) {response -> log.debug (response.data)}
 }
