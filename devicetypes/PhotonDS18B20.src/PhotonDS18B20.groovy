@@ -76,12 +76,15 @@ private String parseValue(String description) {
 	if (description?.startsWith("temperature: ")) {
 		httpGet(
 			uri: "https://api.spark.io/v1/devices/${deviceId}/${deviceName}",
-			body: [access_token: token, command: relaystate],  
+			body: [access_token: token, command: result],  
 			) {response -> log.debug (response.data)}
 		return zigbee.parseHATemperatureValue(description, "temperature: ", getTemperatureScale())
 	} 
 	null
 }
+
+// curl https://api.particle.io/v1/devices/XXXXXX/temperature?access_token=XXXXXX
+
 //private put(relaystate) {
     //Spark Core API Call
 //	httpPost(
