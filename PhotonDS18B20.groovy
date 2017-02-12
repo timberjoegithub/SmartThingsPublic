@@ -74,18 +74,18 @@ private String parseName(String description) {
 
 private String parseValue(String description) {
 	if (description?.startsWith("temperature: ")) {
-		httpPost(
-			uri: "https://api.spark.io/v1/devices/${deviceId}/strelay${relaynum}",
+		httpGet(
+			uri: "https://api.spark.io/v1/devices/${deviceId}/${deviceName}",
 			body: [access_token: token, command: relaystate],  
 			) {response -> log.debug (response.data)}
 		return zigbee.parseHATemperatureValue(description, "temperature: ", getTemperatureScale())
 	} 
 	null
 }
-private put(relaystate) {
+//private put(relaystate) {
     //Spark Core API Call
-	httpPost(
-		uri: "https://api.spark.io/v1/devices/${deviceId}/strelay${relaynum}",
-        body: [access_token: token, command: relaystate],  
-	) {response -> log.debug (response.data)}
-}
+//	httpPost(
+//		uri: "https://api.spark.io/v1/devices/${deviceId}/strelay${relaynum}",
+//        body: [access_token: token, command: relaystate],  
+//	) {response -> log.debug (response.data)}
+//}
