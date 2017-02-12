@@ -76,9 +76,9 @@ private String parseValue(String description) {
 	if (description?.startsWith("temperature: ")) {
 		httpGet(
 			uri: "https://api.spark.io/v1/devices/${deviceId}/${deviceName}",
-			body: [access_token: token, command: result],  
+			body: [access_token: token, result: txtresult],  
 			) {response -> log.debug (response.data)}
-		return zigbee.parseHATemperatureValue(description, "temperature: ", getTemperatureScale())
+		return zigbee.parseHATemperatureValue(description, "temperature: ", txtresult)
 	} 
 	null
 }
