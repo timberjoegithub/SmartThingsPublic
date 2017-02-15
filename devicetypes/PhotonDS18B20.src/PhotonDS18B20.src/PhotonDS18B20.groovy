@@ -23,19 +23,20 @@ metadata {
 		capability "Temperature Measurement"
 		capability "Sensor"
 
-		fingerprint profileId: "0104", deviceId: "0302", inClusters: "0000,0001,0003,0009,0402,0405"
+//		fingerprint profileId: "0104", deviceId: "0302", inClusters: "0000,0001,0003,0009,0402,0405"
 	}
 
 	// simulator metadata
 	simulator {
-		for (int i = 0; i <= 100; i += 10) {
+		for (int i = -30; i <= 180; i += 10) {
 			status "${i}F": "temperature: $i F"
-		}
+		status "on":  "command: 2003, payload: FF"
+		status "off": "command: 2003, payload: 00"}
 	}
 
 	// UI tile definitions
 	tiles {
-		valueTile("temperature", "device.temperature", width: 2, height: 2) {
+		valueTile("temperature", "device.temperature", width: 3, height: 3) {
 			state("temperature", label:'${currentValue}°',
 				backgroundColors:[
 					[value: 31, color: "#153591"],
@@ -48,16 +49,28 @@ metadata {
 				]
 			)
 		}
-		
-
 		main(["temperature"])
 		details(["temperature"])
 	}
 }
+def installed() {
+    initialize()
+}
 
+def updated() {
+    initialize()
+}
+def initialize() {
+//    runEvery5Minutes(parse(temperature))
+log.debug "handlerMethod called at ${new Date()}"
+runEvery5Minutes(callTemp())
+//runEvery5Minutes(parse)
+// log.trace 
+}
 // Parse incoming device messages to generate events
 def parse(String description) {
-	def name = parseName(description)
+//    def getdata = callTemp(numtemp)
+    def name = parseName(description)
 	def value = parseValue(description)
 	def unit = name == "temperature" ? getTemperatureScale() : (name == "humidity" ? "%" : null)
 	def result = createEvent(name: name, value: value, unit: unit)
@@ -72,23 +85,30 @@ private String parseName(String description) {
 	null
 }
 
+
+
 private String parseValue(String description) {
 	if (description?.startsWith("temperature: ")) {
-		httpGet(
-			uri: "https://api.spark.io/v1/devices/${deviceId}/${deviceName}",
-			body: [access_token: token, result: txtresult],  
-			) {response -> log.debug (response.data)}
-		return zigbee.parseHATemperatureValue(description, "temperature: ", txtresult)
-	} 
-	null
+    	def txtresult = ""
+		return (description - "temperature: " - "°F" - "F").trim()
+//		return zigbee.parseHATemperatureValue(description, "temperature: ", txtresult)
+	}
+   }
+
+
+
+def callTemp() {
+	log.debug "callTemp called at ${new Date()}"
+    try {
+    	log.debug "https://api.particle.io/v1/devices/${deviceId}/${deviceName}?access_token=${token}"
+		httpGet(uri: "https://api.particle.io/v1/devices/${deviceId}/${deviceName}?access_token=${token}",
+			contentType: 'application/json',)
+			{resp ->           
+        		log.debug "resp data: ${resp.data}"
+        		log.debug "result: ${resp.data.result}"
+			sendEvent(name: "temperature", value: "${resp.data.result}", unit: "F" )  //sendEvent(name: "temperature", value: 72, unit: "F")
+			//return (${resp.data.result});
+            }	
+    } catch (e) {log.error "something went wrong: $e"}
 }
 
-// curl https://api.particle.io/v1/devices/XXXXXX/temperature?access_token=XXXXXX
-
-//private put(relaystate) {
-    //Spark Core API Call
-//	httpPost(
-//		uri: "https://api.spark.io/v1/devices/${deviceId}/strelay${relaynum}",
-//        body: [access_token: token, command: relaystate],  
-//	) {response -> log.debug (response.data)}
-//}
