@@ -14,38 +14,33 @@
 preferences {
     input("token", "text", title: "Access Token")
     input("deviceId", "text", title: "Device ID")
-//    input("relaynum", "text", title: "Relay Number 1-6")
     input("deviceName", "text", title: "Name of device in the Photon cloud")
 	// device name in api like:  https://api.spark.io/v1/devices/${deviceId}/${deviceName}
 }
 metadata {
-	definition (name: "DS18B20 Temperature Sensor", namespace: "smartthings", author: "github@josephsteele.com") {
+	definition (name: "DS18B20 Photon Temperature Sensor", namespace: "SmartThingsPublic", author: "github@josephsteele.com") {
 		capability "Temperature Measurement"
 		capability "Sensor"
-
-//		fingerprint profileId: "0104", deviceId: "0302", inClusters: "0000,0001,0003,0009,0402,0405"
 	}
-
+    command "callTemp"
 	// simulator metadata
 	simulator {
 		for (int i = -30; i <= 180; i += 10) {
 			status "${i}F": "temperature: $i F"
-		status "on":  "command: 2003, payload: FF"
-		status "off": "command: 2003, payload: 00"}
+		}
 	}
-
 	// UI tile definitions
 	tiles {
 		valueTile("temperature", "device.temperature", width: 3, height: 3) {
 			state("temperature", label:'${currentValue}°',
 				backgroundColors:[
-					[value: 31, color: "#153591"],
+					[value: 20, color: "#153591"],
 					[value: 44, color: "#1e9cbb"],
-					[value: 59, color: "#90d2a7"],
-					[value: 74, color: "#44b621"],
-					[value: 84, color: "#f1d801"],
-					[value: 95, color: "#d04e00"],
-					[value: 96, color: "#bc2323"]
+					[value: 60, color: "#90d2a7"],
+					[value: 85, color: "#44b621"],
+					[value: 98, color: "#f1d801"],
+					[value: 103, color: "#d04e00"],
+					[value: 110, color: "#bc2323"]
 				]
 			)
 		}
@@ -55,60 +50,50 @@ metadata {
 }
 def installed() {
     initialize()
+    log.debug "Installed with settings: ${settings}"
 }
-
 def updated() {
     initialize()
+    log.debug "Updated with settings: ${settings}"
 }
 def initialize() {
-//    runEvery5Minutes(parse(temperature))
 log.debug "handlerMethod called at ${new Date()}"
-runEvery5Minutes(callTemp())
-//runEvery5Minutes(parse)
-// log.trace 
+runEvery5Minutes(callTemp)
+log.debug "line after runevery5 executed at at ${new Date()}"
 }
 // Parse incoming device messages to generate events
 def parse(String description) {
-//    def getdata = callTemp(numtemp)
+    log.info "Entered parse at ${new Date()}"
+    def getdata = callTemp
     def name = parseName(description)
 	def value = parseValue(description)
 	def unit = name == "temperature" ? getTemperatureScale() : (name == "humidity" ? "%" : null)
 	def result = createEvent(name: name, value: value, unit: unit)
-	log.debug "Parse returned ${result?.descriptionText}"
+	log.info "Parse returned ${result?.descriptionText}"
 	return result
 }
-
 private String parseName(String description) {
 	if (description?.startsWith("temperature: ")) {
 		return "temperature"
 	} 
-	null
 }
-
-
-
 private String parseValue(String description) {
 	if (description?.startsWith("temperature: ")) {
     	def txtresult = ""
 		return (description - "temperature: " - "°F" - "F").trim()
-//		return zigbee.parseHATemperatureValue(description, "temperature: ", txtresult)
 	}
-   }
-
-
-
-def callTemp() {
+}
+def callTemp(resp2) {
 	log.debug "callTemp called at ${new Date()}"
     try {
-    	log.debug "https://api.particle.io/v1/devices/${deviceId}/${deviceName}?access_token=${token}"
+//    	log.debug "https://api.particle.io/v1/devices/${deviceId}/${deviceName}?access_token=${token}"
 		httpGet(uri: "https://api.particle.io/v1/devices/${deviceId}/${deviceName}?access_token=${token}",
 			contentType: 'application/json',)
 			{resp ->           
         		log.debug "resp data: ${resp.data}"
-        		log.debug "result: ${resp.data.result}"
+        		log.info "result: ${resp.data.result}"
 			sendEvent(name: "temperature", value: "${resp.data.result}", unit: "F" )  //sendEvent(name: "temperature", value: 72, unit: "F")
-			//return (${resp.data.result});
+			log.debug (name: "temperature", value: "${resp.data.result}", unit: "F" ) 
             }	
     } catch (e) {log.error "something went wrong: $e"}
 }
-
