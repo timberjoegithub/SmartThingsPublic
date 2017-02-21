@@ -18,7 +18,7 @@ preferences {
 	// device name in api like:  https://api.spark.io/v1/devices/${deviceId}/${deviceName}
 }
 metadata {
-	definition (name: "DS18B20 Photon Temperature Sensor", namespace: "SmartThingsPublic", author: "github@josephsteele.com") {
+	definition (name: "DS18B20 Photon Temperature Sensor", namespace: "timberjoegithub", author: "github@josephsteele.com") {
 		capability "Temperature Measurement"
 		capability "Sensor"
 	}
